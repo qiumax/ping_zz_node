@@ -34,7 +34,9 @@ pingController.currentPing = function (req, res) {
             res.send({ping: ping, server_ts:ts});
         }
         else {
+	        res.send({ok:0})
             console.log("暂无拼团信息");
+
         }
     })
 }
@@ -314,17 +316,16 @@ pingController.avatars = function(req, res) {
 pingController.startActivity = function () {
     console.log('check startActivity');
 
-    CurrentPing.findOne().populate('ping')
-        .then(currentPing=> {
-            console.log("CurrentPing: ");
-            console.log(currentPing);
+	CurrentPing.count({},function (err,count) {
+		console.log(count)
+		if(count<2)
+		{
+			console.log("不存在");
+			createFirstPing();
+		}
 
-            // 不存在
-            if (!currentPing) {
-                console.log("不存在");
-                createFirstPing();
-            }
-        })
+	})
+
 }
 
 // 更新当前的Ping
@@ -439,51 +440,62 @@ createFirstPing = function() {
 
         // if(now >= activity.starttime && now <= (activity.starttime+30)) {
         if(now >= activity.starttime && now <= (activity.endtime)) {
-            console.log("开始第一个Ping");
-            Product.find({}).then(products => {
-                console.log("product: ");
-                console.log(products);
+	        console.log("开始第一个Ping");
+	        CurrentPing.find({}).then(curr_pings=>{
+		        var product_arr = new Array()
+		        if(curr_pings)
+		        {
+			        curr_pings.forEach(ping=>{
+				        product_arr.push(ping.product_id)
+			        })
+		        }
+		        console.log(product_arr)
+		        Product.find({_id:{$nin:product_arr}}).then(products => {
+			        console.log("product: ");
+			        console.log(products);
 
-                //循环产生ping
-	            for(var i=0;i<products.length;i++){
-	            	var product = products[i]
-		            var ts = new Date().getTime() / 1000;
-		            var expire = ts + product.expire * 86400;
+			        //循环产生ping
+			        for(var i=0;i<products.length;i++){
+				        var product = products[i]
+				        var ts = new Date().getTime() / 1000;
+				        var expire = ts + product.expire * 86400;
 
-		            var ping = new Ping({
-			            product_id: product._id,
-			            product_name: product.name,
-			            price_origin: product.price_origin,
-			            price_bottom: product.price_bottom,
-			            sponsor_bonus: product.sponsor_bonus,
-			            less_minus: product.less_minus,
-			            rules: product.rules,
-			            finish_num: 0,
-			            expire: expire,
-			            sub_fee: product.sub_fee,
-			            state: 1
-		            });
+				        var ping = new Ping({
+					        product_id: product._id,
+					        product_name: product.name,
+					        price_origin: product.price_origin,
+					        price_bottom: product.price_bottom,
+					        sponsor_bonus: product.sponsor_bonus,
+					        less_minus: product.less_minus,
+					        rules: product.rules,
+					        finish_num: 0,
+					        expire: expire,
+					        sub_fee: product.sub_fee,
+					        state: 1
+				        });
 
-		            ping.save().then(aPing => {
+				        ping.save().then(aPing => {
 
-			            console.log("New Current Ping");
-			            console.log(aPing);
+					        console.log("New Current Ping");
+					        console.log(aPing);
 
-			            var currentPing = new CurrentPing({
-				            ping: aPing._id,
-				            product_id:aPing.product_id
-			            })
+					        var currentPing = new CurrentPing({
+						        ping: aPing._id,
+						        product_id:aPing.product_id
+					        })
 
-			            CurrentPing.deleteMany({}, function (err) {
-				            if (err) console.log(err);
-				            currentPing.save().then(aCurrentPing => {
-					            console.log("Current Ping saved: ");
-					            console.log(aCurrentPing)
-				            })
-			            })
-		            })
-	            }
-            })
+					        CurrentPing.remove({product_id:aPing.product_id}, function (err) {
+						        if (err) console.log(err);
+						        currentPing.save().then(aCurrentPing => {
+							        console.log("Current Ping saved: ");
+							        console.log(aCurrentPing)
+						        })
+					        })
+				        })
+			        }
+		        })
+
+	        })
         }
     })
 }
