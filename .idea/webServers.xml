@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="3040f4a5-e43d-4482-ae32-fdecf6b69805" name="ping-zz" url="http://111.231.99.234">
+        <fileTransfer host="111.231.99.234" port="22" rootFolder="/servers/nodes/ping_zz" accessType="SFTP">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" />
+          </advancedOptions>
+          <option name="port" value="22" />
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
