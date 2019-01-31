@@ -176,10 +176,10 @@ pingController.joinPing = function(req, res) {
                     console.log("user: ");
                     console.log(user);
 
-                    if(user.join_num>=3) {
-                        res.send({err: "您拼团次数已达3次"});
-                        return;
-                    }
+                    // if(user.join_num>=3) {
+                    //     res.send({err: "您拼团次数已达3次"});
+                    //     return;
+                    // }
 
                     // Manager.find().sort({'appoint_num':1}).limit(1)
                     // .then(managers=> {
